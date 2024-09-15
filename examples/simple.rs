@@ -1,4 +1,4 @@
-use getset::{CopyGetters, Getters, MutGetters, Setters, WithSetters};
+use getset2::{CopyGetters, Getters, MutGetters, Setters, WithSetters};
 
 #[derive(Getters, Setters, WithSetters, MutGetters, CopyGetters, Default)]
 pub struct Foo<T>

@@ -1,5 +1,5 @@
 #[macro_use]
-extern crate getset;
+extern crate getset2;
 
 #[derive(CopyGetters, Default, Getters, MutGetters, Setters)]
 struct RawIdentifiers {

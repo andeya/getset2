@@ -1,9 +1,9 @@
-# getset
+# getset2
 
-[![Download](https://img.shields.io/crates/d/getset)](https://crates.io/crates/getset)
-[![License](https://img.shields.io/crates/l/getset)](https://github.com/Hoverbear/getset/blob/master/LICENSE)
-[![Docs](https://docs.rs/getset/badge.svg)](https://docs.rs/getset/)
-[![Coverage Status](https://coveralls.io/repos/github/Hoverbear/getset/badge.svg)](https://coveralls.io/github/Hoverbear/getset)
+[![Download](https://img.shields.io/crates/d/getset2)](https://crates.io/crates/getset2)
+[![License](https://img.shields.io/crates/l/getset2)](https://github.com/andeya/getset2/blob/master/LICENSE)
+[![Docs](https://docs.rs/getset2/badge.svg)](https://docs.rs/getset2/)
+[![Coverage Status](https://coveralls.io/repos/github/andeya/getset2/badge.svg)](https://coveralls.io/github/andeya/getset2)
 
 Getset, we're ready to go!
 
@@ -14,7 +14,7 @@ Getters are generated as `fn field(&self) -> &type`, while setters are generated
 These macros are not intended to be used on fields which require custom logic inside of their setters and getters. Just write your own in that case!
 
 ```rust
-use getset::{CopyGetters, Getters, MutGetters, Setters, WithSetters};
+use getset2::{CopyGetters, Getters, MutGetters, Setters, WithSetters};
 
 #[derive(Getters, Setters, MutGetters, CopyGetters, WithSetters, Default)]
 pub struct Foo<T>
@@ -45,7 +45,7 @@ fn main() {
 You can use `cargo-expand` to generate the output. Here are the functions that the above generates (Replicate with `cargo expand --example simple`):
 
 ```rust
-use getset::{CopyGetters, Getters, MutGetters, Setters, WithSetters};
+use getset2::{CopyGetters, Getters, MutGetters, Setters, WithSetters};
 pub struct Foo<T>
 where
     T: Copy + Clone + Default,
@@ -129,7 +129,7 @@ precedence.
 
 ```rust
 #[macro_use]
-extern crate getset;
+extern crate getset2;
 
 mod submodule {
     #[derive(Getters, CopyGetters, Default)]
@@ -155,7 +155,7 @@ either legacy of compatability reasons. It is done with `with_prefix`.
 
 ```rust
 #[macro_use]
-extern crate getset;
+extern crate getset2;
 
 #[derive(Getters, Default)]
 pub struct Foo {
@@ -173,7 +173,7 @@ Skipping setters and getters generation for a field when struct level attribute 
 is possible with `#[getset(skip)]`.
 
 ```rust
-use getset::{CopyGetters, Setters};
+use getset2::{CopyGetters, Setters};
 
 #[derive(CopyGetters, Setters)]
 #[getset(get_copy, set, set_with)]

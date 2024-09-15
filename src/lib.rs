@@ -8,7 +8,7 @@ Getters are generated as `fn field(&self) -> &type`, while setters are generated
 These macros are not intended to be used on fields which require custom logic inside of their setters and getters. Just write your own in that case!
 
 ```rust
-use getset::{CopyGetters, Getters, MutGetters, Setters};
+use getset2::{CopyGetters, Getters, MutGetters, Setters};
 
 #[derive(Getters, Setters, MutGetters, CopyGetters, Default)]
 pub struct Foo<T>
@@ -35,7 +35,7 @@ assert_eq!(*foo.private(), 2);
 You can use `cargo-expand` to generate the output. Here are the functions that the above generates (Replicate with `cargo expand --example simple`):
 
 ```rust,ignore
-use getset::{Getters, MutGetters, CopyGetters, Setters, WithSetters};
+use getset2::{Getters, MutGetters, CopyGetters, Setters, WithSetters};
 pub struct Foo<T>
 where
     T: Copy + Clone + Default,
@@ -107,7 +107,7 @@ precedence.
 
 ```rust
 mod submodule {
-    use getset::{Getters, MutGetters, CopyGetters, Setters, WithSetters};
+    use getset2::{Getters, MutGetters, CopyGetters, Setters, WithSetters};
     #[derive(Getters, CopyGetters, Default)]
     #[getset(get_copy = "pub")] // By default add a pub getting for all fields.
     pub struct Foo {
@@ -129,7 +129,7 @@ For some purposes, it's useful to have the `get_` prefix on the getters for
 either legacy of compatibility reasons. It is done with `with_prefix`.
 
 ```rust
-use getset::{Getters, MutGetters, CopyGetters, Setters, WithSetters};
+use getset2::{Getters, MutGetters, CopyGetters, Setters, WithSetters};
 
 #[derive(Getters, Default)]
 pub struct Foo {
@@ -146,7 +146,7 @@ Skipping setters and getters generation for a field when struct level attribute 
 is possible with `#[getset(skip)]`.
 
 ```rust
-use getset::{CopyGetters, Setters, WithSetters};
+use getset2::{CopyGetters, Setters, WithSetters};
 
 #[derive(CopyGetters, Setters, WithSetters)]
 #[getset(get_copy, set, set_with)]
