@@ -71,16 +71,17 @@ pub fn getset2(input: TokenStream) -> TokenStream {
 
 fn new_gen_params_list(attrs: &[Attribute]) -> Vec<GenParams> {
     let mut list = vec![];
-    for attr in attrs {
-        let (a, skip_list) = parse_attr(attr);
-        if !skip_list.is_empty() {
-            abort!(
-                attr,
-                "The attribute of the structure do not support `skip` ident."
-            )
-        }
-        list.extend_from_slice(&a);
+    let Some(attr) = attrs.iter().find(|attr| attr.path().is_ident("getset2")) else {
+        return list;
+    };
+    let (a, skip_list) = parse_attr(attr);
+    if !skip_list.is_empty() {
+        abort!(
+            attr,
+            "The attribute of the structure do not support `skip` ident."
+        )
     }
+    list.extend_from_slice(&a);
     if list.iter().any(|p| p.mode == GenMode::GetCopy) {
         list.retain_mut(|p| p.mode != GenMode::GetRef);
     }
