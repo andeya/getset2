@@ -1,14 +1,11 @@
 [package]
 name = "getset2"
 description = """
-Getset, we're ready to go!
-
-A procedural macro for generating the most basic getters and setters on fields.
+Getset2 is a derive macro, which is inspired by getset,
+ is designed for generating the most basic getters and setters on struct fields.
 """
-version = "0.2.1"
+version = "0.3.0"
 authors = [
-    "Ana Hobden <ana@hoverbear.org>",
-    "John Baublitz <john.m.baublitz@gmail.com",
     "Andeya Lee <andeyalee@outlook.com>",
 ]
 license = "MIT"
@@ -17,7 +14,7 @@ edition = "2018"
 categories = ["development-tools::procedural-macro-helpers"]
 keywords = ["macro", "getter", "setter", "getters", "setters"]
 readme = "README.md"
-repository = "https://github.com/andeya/getset"
+repository = "https://github.com/andeya/getset2"
 
 [lib]
 proc-macro = true
