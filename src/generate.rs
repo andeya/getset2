@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use proc_macro_error2::abort;
 use syn::{self, ext::IdentExt, spanned::Spanned, Field, Visibility};
@@ -50,14 +52,15 @@ impl GenMode {
 
 pub fn implement(field: &Field, global_params: &[GenParams]) -> TokenStream2 {
     let mut ts = TokenStream2::new();
-    let Some(attr) = field
+    let (mut params_list, skip_list) = if let Some(attr) = field
         .attrs
         .iter()
         .find(|attr| attr.path().is_ident("getset2"))
-    else {
-        return ts;
+    {
+        parse_attr(attr)
+    } else {
+        (global_params.to_vec(), HashSet::new())
     };
-    let (mut params_list, skip_list) = parse_attr(attr);
     let had_ref_copy = params_list
         .iter()
         .any(|p| matches!(p.mode, GenMode::GetRef | GenMode::GetCopy));

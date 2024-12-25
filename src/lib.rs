@@ -66,10 +66,10 @@ mod generate;
 #[proc_macro_error]
 pub fn getset2(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
-    produce(&ast, &new_gen_params_list(&ast.attrs)).into()
+    produce(&ast, &new_global_gen_params_list(&ast.attrs)).into()
 }
 
-fn new_gen_params_list(attrs: &[Attribute]) -> Vec<GenParams> {
+fn new_global_gen_params_list(attrs: &[Attribute]) -> Vec<GenParams> {
     let mut list = vec![];
     let Some(attr) = attrs.iter().find(|attr| attr.path().is_ident("getset2")) else {
         return list;
