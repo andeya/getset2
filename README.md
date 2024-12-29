@@ -29,7 +29,7 @@ where
 {
     /// Doc comments are supported!
     /// Multiline, even.
-    #[getset2(get_ref, set, get_mut, skip(set_with))]
+    #[getset2(set, get_mut, skip(get_ref))]
     private: T,
 
     /// Doc comments are supported!
@@ -38,7 +38,7 @@ where
         get_copy(pub, const),
         set(pub = "crate"),
         get_mut(pub = "super"),
-        set_with(pub = "self")
+        set_with(pub = "self", const)
     )]
     public: T,
 
@@ -47,9 +47,8 @@ where
 }
 
 impl<T: Copy + Clone + Default> Foo<T> {
-    fn with_private(mut self, private: T) -> Self {
-        self.private = private;
-        self
+    fn private(&self) -> &T {
+        &self.private
     }
     fn skip(&self) {
         self.skip
@@ -95,7 +94,7 @@ where
         get_copy(pub, const),
         set(pub = "crate"),
         get_mut(pub = "super"),
-        set_with(pub = "self")
+        set_with(pub = "self", const)
     )]
     public: T,
     #[getset2(skip)]
