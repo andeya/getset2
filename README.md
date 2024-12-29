@@ -35,7 +35,7 @@ where
     /// Doc comments are supported!
     /// Multiline, even.
     #[getset2(
-        get_copy(pub),
+        get_copy(pub, const),
         set(pub = "crate"),
         get_mut(pub = "super"),
         set_with(pub = "self")
@@ -92,7 +92,7 @@ where
     /// Doc comments are supported!
     /// Multiline, even.
     #[getset2(
-        get_copy(pub),
+        get_copy(pub, const),
         set(pub = "crate"),
         get_mut(pub = "super"),
         set_with(pub = "self")
@@ -100,6 +100,20 @@ where
     public: T,
     #[getset2(skip)]
     skip: (),
+}
+#[automatically_derived]
+impl<T: ::core::default::Default> ::core::default::Default for Foo<T>
+where
+    T: Copy + Clone + Default,
+{
+    #[inline]
+    fn default() -> Foo<T> {
+        Foo {
+            private: ::core::default::Default::default(),
+            public: ::core::default::Default::default(),
+            skip: ::core::default::Default::default(),
+        }
+    }
 }
 impl<T> Foo<T>
 where
@@ -128,7 +142,7 @@ where
     /// Doc comments are supported!
     /// Multiline, even.
     #[inline(always)]
-    pub fn public(&self) -> T {
+    pub const fn public(&self) -> T {
         self.public
     }
     /// Doc comments are supported!
@@ -147,23 +161,9 @@ where
     /// Doc comments are supported!
     /// Multiline, even.
     #[inline(always)]
-    pub(self) fn with_public(mut self, val: T) -> Self {
+    pub(self) const fn with_public(mut self, val: T) -> Self {
         self.public = val;
         self
-    }
-}
-#[automatically_derived]
-impl<T: ::core::default::Default> ::core::default::Default for Foo<T>
-where
-    T: Copy + Clone + Default,
-{
-    #[inline]
-    fn default() -> Foo<T> {
-        Foo {
-            private: ::core::default::Default::default(),
-            public: ::core::default::Default::default(),
-            skip: ::core::default::Default::default(),
-        }
     }
 }
 impl<T: Copy + Clone + Default> Foo<T> {

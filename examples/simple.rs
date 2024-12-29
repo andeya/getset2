@@ -14,10 +14,10 @@ where
     /// Doc comments are supported!
     /// Multiline, even.
     #[getset2(
-        get_copy(pub),
+        get_copy(pub, const),
         set(pub = "crate"),
         get_mut(pub = "super"),
-        set_with(pub = "self")
+        set_with(pub = "self", const)
     )]
     public: T,
 

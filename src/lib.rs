@@ -13,16 +13,16 @@ where
 {
     /// Doc comments are supported!
     /// Multiline, even.
-    #[getset2(get_ref, set, get_mut, skip(set_with))]
+    #[getset2(set, get_mut, skip(get_ref))]
     private: T,
 
     /// Doc comments are supported!
     /// Multiline, even.
     #[getset2(
-        get_copy(pub),
+        get_copy(pub, const),
         set(pub = "crate"),
         get_mut(pub = "super"),
-        set_with(pub = "self")
+        set_with(pub = "self", const)
     )]
     public: T,
 
@@ -31,9 +31,8 @@ where
 }
 
 impl<T: Copy + Clone + Default> Foo<T> {
-    fn with_private(mut self, private: T) -> Self {
-        self.private = private;
-        self
+    fn private(&self) -> &T {
+        &self.private
     }
     fn skip(&self) {
         self.skip
@@ -45,8 +44,7 @@ impl<T: Copy + Clone + Default> Foo<T> {
 ```
 */
 
-#[macro_use]
-extern crate quote;
+use quote::quote;
 
 use std::collections::HashSet;
 
@@ -99,34 +97,25 @@ fn parse_attr(attr: &Attribute) -> (Vec<GenParams>, HashSet<GenMode>) {
             }
             p if p.is_ident("get_ref") => {
                 if !had_ref_copy {
-                    params_list.push(GenParams {
-                        mode: GenMode::GetRef,
-                        vis: parse_vis_attr(&sub_attr, attr),
-                    });
+                    params_list.push(new_gen_params(GenMode::GetRef, &sub_attr, attr));
                     had_ref_copy = true
                 }
             }
             p if p.is_ident("get_copy") => {
                 if !had_ref_copy {
-                    params_list.push(GenParams {
-                        mode: GenMode::GetCopy,
-                        vis: parse_vis_attr(&sub_attr, attr),
-                    });
+                    params_list.push(new_gen_params(GenMode::GetCopy, &sub_attr, attr));
                     had_ref_copy = true
                 }
             }
-            p if p.is_ident("get_mut") => params_list.push(GenParams {
-                mode: GenMode::GetMut,
-                vis: parse_vis_attr(&sub_attr, attr),
-            }),
-            p if p.is_ident("set") => params_list.push(GenParams {
-                mode: GenMode::Set,
-                vis: parse_vis_attr(&sub_attr, attr),
-            }),
-            p if p.is_ident("set_with") => params_list.push(GenParams {
-                mode: GenMode::SetWith,
-                vis: parse_vis_attr(&sub_attr, attr),
-            }),
+            p if p.is_ident("get_mut") => {
+                params_list.push(new_gen_params(GenMode::GetMut, &sub_attr, attr))
+            }
+            p if p.is_ident("set") => {
+                params_list.push(new_gen_params(GenMode::Set, &sub_attr, attr))
+            }
+            p if p.is_ident("set_with") => {
+                params_list.push(new_gen_params(GenMode::SetWith, &sub_attr, attr))
+            }
             _ => abort!(attr, "Invalid attribute {}", quote! {attr}),
         }
         Ok(())
@@ -158,36 +147,46 @@ fn parse_skip_attr(meta: &ParseNestedMeta<'_>, attr: &Attribute) -> Vec<GenMode>
     list
 }
 
-fn parse_vis_attr(p: &ParseNestedMeta<'_>, attr: &Attribute) -> Option<Visibility> {
+fn new_gen_params(gen_mode: GenMode, p: &ParseNestedMeta<'_>, attr: &Attribute) -> GenParams {
     let mut vis = None;
+    let mut is_const = None;
     let _ = p.parse_nested_meta(|pp| {
-        vis = parse_vis_meta(&pp, attr);
+        let (_vis, _is_const) = parse_vis_meta(&pp, attr);
+        if let Some(x) = _vis {
+            vis = Some(x);
+        }
+        if let Some(x) = _is_const {
+            is_const = Some(x);
+        }
         Ok(())
     });
-    vis
+    GenParams {
+        mode: gen_mode,
+        vis,
+        is_const,
+    }
 }
 
-fn parse_vis_meta(p: &ParseNestedMeta<'_>, attr: &Attribute) -> Option<Visibility> {
-    if !p.path.is_ident("pub") {
-        return None;
-    }
-    if p.input.is_empty() {
-        return Some(syn::parse_str("pub").unwrap());
-    }
-    Some(match p.value() {
-        Ok(v) => match v.parse::<LitStr>() {
-            Ok(vv) => match vv.value().as_str() {
-                "crate" => syn::parse_str("pub(crate)").unwrap(),
-                "super" => syn::parse_str("pub(crate)").unwrap(),
-                "self" => syn::parse_str("pub(self)").unwrap(),
-                x => abort!(attr, "Invalid visibility found: pub = \"{}\"", x),
+fn parse_vis_meta(p: &ParseNestedMeta<'_>, attr: &Attribute) -> (Option<Visibility>, Option<bool>) {
+    match &p.path {
+        x if x.is_ident("const") => (None, Some(true)),
+        x if x.is_ident("pub") => match p.value() {
+            Ok(v) => match v.parse::<LitStr>() {
+                Ok(vv) => (
+                    Some(match vv.value().as_str() {
+                        "crate" => syn::parse_str("pub(crate)").unwrap(),
+                        "super" => syn::parse_str("pub(crate)").unwrap(),
+                        "self" => syn::parse_str("pub(self)").unwrap(),
+                        x => abort!(attr, "Invalid visibility found: pub = \"{}\"", x),
+                    }),
+                    None,
+                ),
+                Err(e) => abort!(attr, "Invalid visibility found1: {}", e),
             },
-            Err(e) => abort!(attr, "Invalid visibility found: {}", e),
+            Err(_e) => (Some(syn::parse_str("pub").unwrap()), None),
         },
-        Err(e) => {
-            abort!(attr, "Invalid visibility found: {}", e)
-        }
-    })
+        _ => (None, None),
+    }
 }
 
 fn produce(ast: &DeriveInput, global_params_list: &[GenParams]) -> TokenStream2 {

@@ -4,10 +4,8 @@ description = """
 Getset2 is a derive macro, which is inspired by getset,
  is designed for generating the most basic getters and setters on struct fields.
 """
-version = "0.3.2"
-authors = [
-    "Andeya Lee <andeyalee@outlook.com>",
-]
+version = "0.4.0"
+authors = ["Andeya Lee <andeyalee@outlook.com>"]
 license = "MIT"
 edition = "2018"
 

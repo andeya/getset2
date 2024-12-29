@@ -1,10 +1,9 @@
-use std::collections::HashSet;
-
+use crate::parse_attr;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use proc_macro_error2::abort;
-use syn::{self, ext::IdentExt, spanned::Spanned, Field, Visibility};
-
-use crate::parse_attr;
+use quote::quote;
+use std::collections::HashSet;
+use syn::{self, ext::IdentExt, spanned::Spanned, token::Const, Field, Visibility};
 
 use self::GenMode::{GetCopy, GetMut, GetRef, Set, SetWith};
 
@@ -12,6 +11,7 @@ use self::GenMode::{GetCopy, GetMut, GetRef, Set, SetWith};
 pub struct GenParams {
     pub mode: GenMode,
     pub vis: Option<Visibility>,
+    pub is_const: Option<bool>,
 }
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
@@ -102,13 +102,20 @@ pub fn gen_method(field: &Field, params: GenParams) -> TokenStream2 {
     let doc = field.attrs.iter().filter(|v| v.meta.path().is_ident("doc"));
 
     let visibility = params.vis;
+    let const_kw: Option<Const> = params.is_const.and_then(|is_const| {
+        if is_const {
+            Some(Const::default())
+        } else {
+            None
+        }
+    });
 
     match params.mode {
         GenMode::GetRef => {
             quote! {
                 #(#doc)*
                 #[inline(always)]
-                #visibility fn #fn_name(&self) -> &#ty {
+                #visibility #const_kw fn #fn_name(&self) -> &#ty {
                     &self.#field_name
                 }
             }
@@ -117,18 +124,8 @@ pub fn gen_method(field: &Field, params: GenParams) -> TokenStream2 {
             quote! {
                 #(#doc)*
                 #[inline(always)]
-                #visibility fn #fn_name(&self) -> #ty {
+                #visibility #const_kw fn #fn_name(&self) -> #ty {
                     self.#field_name
-                }
-            }
-        }
-        GenMode::Set => {
-            quote! {
-                #(#doc)*
-                #[inline(always)]
-                #visibility fn #fn_name(&mut self, val: #ty) -> &mut Self {
-                    self.#field_name = val;
-                    self
                 }
             }
         }
@@ -136,8 +133,18 @@ pub fn gen_method(field: &Field, params: GenParams) -> TokenStream2 {
             quote! {
                 #(#doc)*
                 #[inline(always)]
-                #visibility fn #fn_name(&mut self) -> &mut #ty {
+                #visibility #const_kw fn #fn_name(&mut self) -> &mut #ty {
                     &mut self.#field_name
+                }
+            }
+        }
+        GenMode::Set => {
+            quote! {
+                #(#doc)*
+                #[inline(always)]
+                #visibility #const_kw fn #fn_name(&mut self, val: #ty) -> &mut Self {
+                    self.#field_name = val;
+                    self
                 }
             }
         }
@@ -145,7 +152,7 @@ pub fn gen_method(field: &Field, params: GenParams) -> TokenStream2 {
             quote! {
                 #(#doc)*
                 #[inline(always)]
-                #visibility fn #fn_name(mut self, val: #ty) -> Self {
+                #visibility #const_kw fn #fn_name(mut self, val: #ty) -> Self {
                     self.#field_name = val;
                     self
                 }
